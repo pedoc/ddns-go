@@ -56,6 +56,8 @@ var customDNS = flag.String("dns", "", "Custom DNS server address, example: 8.8.
 // 重置密码
 var newPassword = flag.String("resetPassword", "", "Reset password to the one entered")
 
+var cliMode = flag.Bool("cli", false, "Run in CLI mode,exit immediately after updating DNS")
+
 //go:embed static
 var staticEmbeddedFiles embed.FS
 
@@ -156,8 +158,13 @@ func run() {
 	// 等待网络连接
 	util.WaitInternet(dns.Addresses)
 
-	// 定时运行
-	dns.RunTimer(time.Duration(*every) * time.Second)
+	if !*cliMode {
+		// 定时运行
+		dns.RunTimer(time.Duration(*every) * time.Second)
+	} else {
+		// 指定了cli模式, 则只运行一次
+		dns.RunOnce()
+	}
 }
 
 func staticFsFunc(writer http.ResponseWriter, request *http.Request) {
